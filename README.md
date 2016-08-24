@@ -1,2 +1,4 @@
 # dailyprogrammer-280
-DailyProgrammer 280 solution attempt in Haskell
+Solution attempt for DailyProgrammer 280 in Haskell.
+
+http://goo.gl/RfujkW
