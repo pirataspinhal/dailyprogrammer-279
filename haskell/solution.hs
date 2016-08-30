@@ -1,27 +1,28 @@
 import Data.List.Utils -- cabal install missingH
 
--- solution.hs
---      reflow and justify input text to 40-char width.
---      redir the output to a formatting function, so
---      results can actually be seen. e.g.:
---      putStrLn(prettify "sample text")
+-- output directly
+reflow :: String -> IO()
+reflow = putStrLn . concat . map (\x -> concat $ justify $ split_nt x) .
+         allocate . words
 
--- solution entry point
-prettify :: [Char] -> [Char]
-prettify [] = []
-prettify a = concat(justify(reflow(words a)))
+-- split w/out trimming
+split_nt ::  String  -> [String]
+split_nt a = map (\x -> if endswith "\n" x then x else x ++ " ") $ split " " a
 
--- reflow word list function
-reflow:: [[Char]] -> [[Char]]
-reflow a@(_:[]) = a
-reflow a@(x:y:_)
-  | length(x ++ " " ++ y) <= 40 = reflow((x ++ " " ++ y):tail(tail a))
-  | otherwise = (x ++ "\n"):[] ++ reflow(tail a)
+-- form lines from words
+allocate :: [String] -> [String]
+allocate [] = []
+allocate a  = map (\x -> x ++ "\n") $ lines $
+        (foldl1 (\acc xa -> if length xa + (length $ last $ lines acc) < 40
+        then acc ++ " "  ++ xa
+        else acc ++ "\n" ++ xa) a ++ "\n")
 
--- justify line list function
-justify :: [[Char]] -> [[Char]]
+-- justify lines to 40c width
+justify :: [String] -> [String]
 justify a@(_:[]) = a
 justify a@(x:_)
-  | ((countElem ' ' x) + (length x) <= 40)
-  = justify((replace " " "  " x):(tail a))
-  | otherwise = x:[] ++ justify(tail a)
+  | not(endswith "\n" x) && length(concat a) < 40
+  = justify(tail a ++ (x ++ " "):[])
+  | endswith "\n" x && length(concat a) >= 40
+  = concat(tail a ++ x:[]):[]
+  | otherwise = justify(tail a ++ x:[])
