@@ -1,30 +1,28 @@
 - module(solution).
-- export([prettify/1,reflow/1,justify/1]).
+- export([message/0,reflow/1]).
 
-%% oh look, a macro
-%%
-- define(Replace(L,Tgt,Arg),re:replace(L,Tgt,Arg,[global,{return,list}])).
+%% oh look, macros
+- define(Split(List,Arg),re:split(List,Arg,[{return,list}])).
+- define(LLLen(Line),length(lists:last(?Split(Line, "\n")))).
 
-%% call dis function
-%%
-prettify([]) -> [];
-prettify(Str) ->
-        lists:concat(justify(reflow(re:split(Str, "\\s+", [{return, list}])))).
+message() -> "In the beginning God created the heavens\n
+and the earth. Now the earth was\n formless and empty,\n
+darkness was over the surface of the deep, and the\n
+Spirit of God was hovering over the waters.\n
+And God said, \"Let there be light,\" and\n
+there was light. God saw that the light\n
+was good, and he separated the light\n
+from the darkness. God called the light\n
+\"day,\" and the darkness he called\n
+\"night.\" And there was evening, and\n
+there was morning - the first day.\n".
 
-%%      i: list of chars
-%%      o: list of lines
-%%
-reflow([H|[]]) -> [H ++ "~n"];
-reflow([H1,H2|T]) when (length(H1) + length(H2) + 1 =< 40) ->
-        reflow([H1 ++ " " ++ H2|T]);
-reflow([H1,H2|T]) -> [H1 ++ "~n"] ++ reflow([H2|T]).
-
-%%      i: list of lines
-%%      o: list of lines
-%%
-justify([H|[]]) -> [H];
-justify([H|T]) ->
-        case (length(H) + string:words(H) - 1 =< 40) of
-                true -> justify([?Replace(H, " ", "  ")|T]); %% use ? to expand
-                false -> [H] ++ justify(T)
-        end.
+%% fold: O(n)
+reflow(Str) ->
+        [H|T] = ?Split(Str,"\\s+"),
+        lists:foldl(fun(Word, Acc) ->
+                            case (length(Word) + ?LLLen(Acc) < 40) of
+                                    true  -> Acc ++ " "  ++ Word;
+                                    _     -> Acc ++ "\n" ++ Word
+                            end
+                    end, H, T) ++ "\n".
